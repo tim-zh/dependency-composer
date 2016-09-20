@@ -18,8 +18,8 @@ object Main extends App {
     io.Source.stdin.getLines().next() match {
       case ":x" =>
         return
-      case ":go" =>
-        println(state.generate)
+      case ":sbt" =>
+        println(state.generateSbt)
         processInput(state)
       case resultNumberMask(n) =>
         val number = Integer.valueOf(n)

@@ -4,6 +4,8 @@ version := "1.0"
 
 scalaVersion := "2.11.8"
 
+assemblyOutputPath in assembly := file("./dc.jar")
+
 resolvers += "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/"
 
 libraryDependencies ++= Seq(

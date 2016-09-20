@@ -1,5 +1,7 @@
 package dcomposer
 
+import java.net.SocketTimeoutException
+
 import play.api.libs.json.{JsArray, JsObject, Json}
 
 import scalaj.http.Http
@@ -17,7 +19,8 @@ trait DataSource {
       versions
     else {
       val latest = releases.max(Ordering.fromLessThan[String]((a, b) => a.compareTo(b) < 0))
-      latest +: versions
+      val (head, tail) = versions.partition(_ == latest)
+      head ++ tail
     }
   }
 }
@@ -28,12 +31,18 @@ class MavenCentralDs extends DataSource {
         .param("q", query)
         .param("rows", "20")
         .param("wt", "json")
-    val response = request.asString
-    (Json.parse(response.body) \ "response" \ "docs").as[JsArray].value.toIndexedSeq.map(_.as[JsObject]).map { obj =>
-      val group = (obj \ "g").as[String]
-      val artifact = (obj \ "a").as[String]
-      val version = (obj \ "latestVersion").as[String]
-      Dependency(group, artifact, version)
+    try {
+      val response = request.asString
+      (Json.parse(response.body) \ "response" \ "docs").as[JsArray].value.toIndexedSeq.map(_.as[JsObject]).map { obj =>
+        val group = (obj \ "g").as[String]
+        val artifact = (obj \ "a").as[String]
+        val version = (obj \ "latestVersion").as[String]
+        Dependency(group, artifact, version)
+      }
+    } catch {
+      case _: SocketTimeoutException =>
+        println("  connection timeout")
+        IndexedSeq()
     }
   }
 
@@ -55,15 +64,21 @@ class BinTrayDs extends DataSource {
   override def searchDependency(query: String) = {
     val request = Http("https://api.bintray.com/search/packages/maven")
         .param("q", s"*$query*")
-    val response = request.asString
-    Json.parse(response.body).as[JsArray].value.toIndexedSeq.map(_.as[JsObject]).flatMap { obj =>
-      val version = (obj \ "latest_version").as[String]
-      val versions = (obj \ "versions").as[JsArray].value.toIndexedSeq.map(_.as[String])
-      (obj \ "system_ids").as[JsArray].value.toIndexedSeq.map(_.as[String]).map { name =>
-        val group = name.substring(0, name.indexOf(":"))
-        val artifact = name.substring(name.indexOf(":") + 1)
-        Dependency(group, artifact, version, versions)
+    try {
+      val response = request.asString
+      Json.parse(response.body).as[JsArray].value.toIndexedSeq.map(_.as[JsObject]).flatMap { obj =>
+        val version = (obj \ "latest_version").as[String]
+        val versions = (obj \ "versions").as[JsArray].value.toIndexedSeq.map(_.as[String])
+        (obj \ "system_ids").as[JsArray].value.toIndexedSeq.map(_.as[String]).map { name =>
+          val group = name.substring(0, name.indexOf(":"))
+          val artifact = name.substring(name.indexOf(":") + 1)
+          Dependency(group, artifact, version, versions)
+        }
       }
+    } catch {
+      case _: SocketTimeoutException =>
+        println("  connection timeout")
+        IndexedSeq()
     }
   }
 
