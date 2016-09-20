@@ -6,11 +6,11 @@ object Main extends App {
   println("Usage:")
   println("  - type an artifact name pattern")
   println("  - type :number (e.g. :1) to choose from search result")
-  println("  - type :number again to choose version from search result")
+  println("  - type :number again to choose version from search result, :0 is the latest release")
   println("  - type :go to generate sbt libraryDependencies from chosen results")
   println("  - type :x to exit")
 
-  val ds = new MavenCentralDS {}
+  val ds = new MavenCentralDs
 
   @tailrec
   def processInput(state: State): Unit = {
@@ -20,7 +20,7 @@ object Main extends App {
         return
       case ":go" =>
         println(state.generate)
-        processInput(SearchArtifact(ds))
+        processInput(state)
       case resultNumberMask(n) =>
         val number = Integer.valueOf(n)
         processInput(state.enterNumber(number))

@@ -8,7 +8,6 @@ sealed trait State {
   def generate: String = {
     val versions = cache.flatMap(_.scalaVersion).toSet
     val isDifferentScalaVersions = versions.size > 1
-    //scalaVersion := "2.11.8"
     val prefix = if (isDifferentScalaVersions)
       ""
     else
@@ -66,18 +65,18 @@ case class SelectVersion(ds: DataSource, dependency: Dependency, versions: Index
     }
 }
 
-case class Dependency(group: String, artifact: String, version: String) {
+case class Dependency(group: String, artifact: String, version: String, allVersions: IndexedSeq[String] = IndexedSeq()) {
   def toSbt =
     if (scalaVersion.isDefined)
-      s"""$group %% "${splitArtifact._1}" % $version"""
+      s""""$group" %% "${splitArtifact._1}" % "$version""""
     else
       toSbtWithVersion
 
-  def toSbtWithVersion = s"""$group % $artifact % $version"""
+  def toSbtWithVersion = s""""$group" % "$artifact" % "$version""""
 
   def scalaVersion = splitArtifact._2
 
-  private val nameVersion = "^\"(.+)_([\\d.]+)\"$".r
+  private val nameVersion = "^(.+)_([^_]+)$".r
 
   private def splitArtifact = artifact match {
     case nameVersion(name, v) =>
