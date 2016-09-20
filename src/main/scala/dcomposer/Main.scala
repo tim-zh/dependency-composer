@@ -10,6 +10,8 @@ object Main extends App {
   println("  - type :go to generate sbt libraryDependencies from chosen results")
   println("  - type :x to exit")
 
+  val ds = new MavenCentralDS {}
+
   @tailrec
   def processInput(state: State): Unit = {
     val resultNumberMask = ":(\\d+)".r
@@ -18,7 +20,7 @@ object Main extends App {
         return
       case ":go" =>
         println(state.generate)
-        processInput(SearchArtifact())
+        processInput(SearchArtifact(ds))
       case resultNumberMask(n) =>
         val number = Integer.valueOf(n)
         processInput(state.enterNumber(number))
@@ -27,5 +29,5 @@ object Main extends App {
     }
   }
 
-  processInput(SearchArtifact())
+  processInput(SearchArtifact(ds))
 }
