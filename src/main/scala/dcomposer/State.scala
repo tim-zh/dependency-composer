@@ -15,7 +15,21 @@ sealed trait State {
     val dependencies = cache.map { d =>
       "\n  " + (if (isOneScalaVersion) d.toSbt else d.toSbtWithVersion)
     }.mkString(",")
-    s"${prefix}libraryDependencies ++= Seq($dependencies)"
+    s"${prefix}libraryDependencies ++= Seq($dependencies\n)"
+  }
+
+  def generateMvn: String = {
+    val dependencies = cache.map(_.toMvn).mkString("\n")
+    s"""<dependencies>
+       |$dependencies
+       |</dependencies>""".stripMargin
+  }
+
+  def generateGradle: String = {
+    val dependencies = cache.map(_.toGradle).mkString("\n")
+    s"""dependencies {
+        |$dependencies
+        |}""".stripMargin
   }
 
   def setDs(ds: DataSource): State
@@ -93,6 +107,16 @@ case class Dependency(group: String, artifact: String, version: String, allVersi
   def toSbtWithVersion = s""""$group" % "$artifact" % "$version""""
 
   def scalaVersion = splitArtifact._2
+
+  def toMvn =
+    s"""  <dependency>
+        |    <groupId>$group</groupId>
+        |    <artifactId>$artifact</artifactId>
+        |    <version>$version</version>
+        |  </dependency>""".stripMargin
+
+  def toGradle =
+    s"  compile(group: '$group', name: '$artifact', version: '$version')"
 
   private val nameVersion = "^(.+)_([^_]+)$".r
 

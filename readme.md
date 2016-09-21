@@ -1,6 +1,6 @@
 #dependency-composer
 
-console rest client for browsing Maven Central (and possibly Bintray) and generating dependency list (for sbt)
+console rest client for browsing Maven Central or Bintray and generating dependency list for build tools
 
 ###Setup:
 
@@ -16,7 +16,7 @@ Usage:
   - type an artifact name pattern
   - type :number (e.g. :1) to choose from search result
   - type :number again to choose version from search result, :0 is the latest release
-  - type :go to generate sbt libraryDependencies from chosen results
+  - type :[sbt|mvn|gradle] (e.g. :sbt) to generate sbt, maven dependency list from chosen results
   - type :[central|bintray] (default is :central) to choose search backend
   - type :x to exit
 joda-time
@@ -45,6 +45,20 @@ scalaVersion := 2.11
 libraryDependencies ++= Seq(
   "joda-time" % "joda-time" % "2.9.4",
   "com.typesafe.play" %% "play-json" % "2.5.7")
+:mvn
+<dependencies>
+  <dependency>
+    <groupId>joda-time</groupId>
+    <artifactId>joda-time</artifactId>
+    <version>2.9.4</version>
+  </dependency>
+  <dependency>
+    <groupId>com.typesafe.play</groupId>
+    <artifactId>play-json_2.11</artifactId>
+    <version>2.5.7</version>
+  </dependency>
+</dependencies>
+:gradle
 :x
 $
 ```
