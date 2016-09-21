@@ -26,7 +26,8 @@ sealed trait State {
 case class SearchArtifact(ds: DataSource, override val cache: Seq[Dependency] = Seq()) extends State {
   override def search(query: String) = {
     val dependencies = ds.searchDependency(query)
-    dependencies.map(_.toSbtWithVersion).zipWithIndex.map { case (str, i) => s"  :$i $str" }.foreach(println)
+    val artifactWidth = dependencies.map(_.artifact.length).max
+    dependencies.map(_.readable(artifactWidth)).zipWithIndex.map { case (str, i) => s"  :$i\t$str" }.foreach(println)
     SelectArtifact(ds, dependencies, cache)
   }
 
@@ -35,7 +36,10 @@ case class SearchArtifact(ds: DataSource, override val cache: Seq[Dependency] = 
     this
   }
 
-  override def setDs(ds: DataSource) = copy(ds = ds)
+  override def setDs(ds: DataSource) = {
+    println("  done")
+    copy(ds = ds)
+  }
 }
 
 case class SelectArtifact(ds: DataSource, dependencies: IndexedSeq[Dependency], override val cache: Seq[Dependency]) extends State {
@@ -46,7 +50,7 @@ case class SelectArtifact(ds: DataSource, dependencies: IndexedSeq[Dependency], 
     if (n < dependencies.size) {
       val dependency = dependencies(n)
       val versions = ds.searchVersion(dependency)
-      versions.zipWithIndex.map { case (str, i) => s"  :$i $str" }.foreach(println)
+      versions.zipWithIndex.map { case (str, i) => s"  :$i\t$str" }.foreach(println)
       SelectVersion(ds, dependency, versions, cache)
     } else {
       println("  incorrect number")
@@ -75,6 +79,11 @@ case class SelectVersion(ds: DataSource, dependency: Dependency, versions: Index
 }
 
 case class Dependency(group: String, artifact: String, version: String, allVersions: IndexedSeq[String] = IndexedSeq()) {
+  def readable(artifactWidth: Int) = {
+    val filler = new String(Array.fill(artifactWidth - artifact.length)(' '))
+    s"$artifact$filler - $group - $version"
+  }
+
   def toSbt =
     if (scalaVersion.isDefined)
       s""""$group" %% "${splitArtifact._1}" % "$version""""

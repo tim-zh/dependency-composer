@@ -20,22 +20,22 @@ Usage:
   - type :[central|bintray] (default is :central) to choose search backend
   - type :x to exit
 joda-time
-  :0 "joda-time" % "joda-time" % "2.9.4"
-  :1 "joda-time" % "joda-time-hibernate" % "1.4"
+  :0	joda-time                         - joda-time - 2.9.4
+  :1	joda-time-hibernate               - joda-time - 1.4
   ...
 :0
-  :0 2.9.4
-  :1 2.9.3
+  :0	2.9.4
+  :1	2.9.3
   ...
 :0
   done
 play-json
-  :0 "com.typesafe.play" % "play-json_2.11" % "2.5.8"
-  :1 "de.heikoseeberger" % "akka-http-play-json_2.11" % "1.10.0"
+  :0	play-json_2.11                - com.typesafe.play - 2.5.8
+  :1	akka-http-play-json_2.11      - de.heikoseeberger - 1.10.0
   ...
 :0
-  :0 2.5.8
-  :1 2.5.7
+  :0	2.5.8
+  :1	2.5.7
   ...
 :1
   done
