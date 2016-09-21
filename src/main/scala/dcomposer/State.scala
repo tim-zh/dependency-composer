@@ -18,6 +18,8 @@ sealed trait State {
     s"${prefix}libraryDependencies ++= Seq($dependencies)"
   }
 
+  def setDs(ds: DataSource): State
+
   val cache: Seq[Dependency]
 }
 
@@ -32,6 +34,8 @@ case class SearchArtifact(ds: DataSource, override val cache: Seq[Dependency] = 
     println("  type a query first")
     this
   }
+
+  override def setDs(ds: DataSource) = copy(ds = ds)
 }
 
 case class SelectArtifact(ds: DataSource, dependencies: IndexedSeq[Dependency], override val cache: Seq[Dependency]) extends State {
@@ -48,6 +52,8 @@ case class SelectArtifact(ds: DataSource, dependencies: IndexedSeq[Dependency], 
       println("  incorrect number")
       this
     }
+
+  override def setDs(ds: DataSource) = copy(ds = ds)
 }
 
 case class SelectVersion(ds: DataSource, dependency: Dependency, versions: IndexedSeq[String], override val cache: Seq[Dependency]) extends State {
@@ -64,6 +70,8 @@ case class SelectVersion(ds: DataSource, dependency: Dependency, versions: Index
       println("  incorrect number")
       this
     }
+
+  override def setDs(ds: DataSource) = copy(ds = ds)
 }
 
 case class Dependency(group: String, artifact: String, version: String, allVersions: IndexedSeq[String] = IndexedSeq()) {

@@ -17,6 +17,7 @@ Usage:
   - type :number (e.g. :1) to choose from search result
   - type :number again to choose version from search result, :0 is the latest release
   - type :go to generate sbt libraryDependencies from chosen results
+  - type :[central|bintray] (default is :central) to choose search backend
   - type :x to exit
 joda-time
   :0 "joda-time" % "joda-time" % "2.9.4"
