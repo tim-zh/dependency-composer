@@ -47,7 +47,7 @@ play-json
 :1
   done
 :sbt
-scalaVersion := 2.11
+scalaVersion := "2.11.8"
 
 libraryDependencies ++= Seq(
   "joda-time" % "joda-time" % "2.9.4",
@@ -65,7 +65,6 @@ libraryDependencies ++= Seq(
     <version>2.5.7</version>
   </dependency>
 </dependencies>
-:gradle
 :x
 $
 ```

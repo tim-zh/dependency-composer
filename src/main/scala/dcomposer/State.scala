@@ -9,7 +9,7 @@ sealed trait State {
     val versions = cache.flatMap(_.scalaVersion).toSet
     val isOneScalaVersion = versions.size == 1
     val prefix = if (isOneScalaVersion)
-      s"scalaVersion := ${versions.head}\n\n"
+      s"""scalaVersion := "${ds.fullScalaVersion(versions.head)}"\n\n"""
     else
       ""
     val dependencies = cache.map { d =>
@@ -32,15 +32,17 @@ sealed trait State {
        |}""".stripMargin
   }
 
-  def setDs(ds: DataSource): State
+  protected val ds: DataSource
 
-  val cache: Seq[Dependency]
+  protected val cache: Seq[Dependency]
 }
 
-case class SearchArtifact(ds: DataSource, override val cache: Seq[Dependency] = Seq()) extends State {
+case class SearchArtifact(
+    override val ds: DataSource,
+    override val cache: Seq[Dependency] = Seq()) extends State {
   override def search(query: String) = {
     val dependencies = ds.searchDependency(query)
-    val artifactWidth = dependencies.map(_.artifact.length).max
+    val artifactWidth = if (dependencies.isEmpty) 0 else dependencies.map(_.artifact.length).max
     dependencies.map(_.readable(artifactWidth)).zipWithIndex.map { case (str, i) => s"  :$i\t$str" }.foreach(println)
     SelectArtifact(ds, dependencies, cache)
   }
@@ -49,11 +51,12 @@ case class SearchArtifact(ds: DataSource, override val cache: Seq[Dependency] = 
     println("  type a query first")
     this
   }
-
-  override def setDs(ds: DataSource) = copy(ds = ds)
 }
 
-case class SelectArtifact(ds: DataSource, dependencies: IndexedSeq[Dependency], override val cache: Seq[Dependency]) extends State {
+case class SelectArtifact(
+    override val ds: DataSource,
+    dependencies: IndexedSeq[Dependency],
+    override val cache: Seq[Dependency]) extends State {
   override def search(query: String) =
     SearchArtifact(ds, cache).search(query)
 
@@ -67,11 +70,13 @@ case class SelectArtifact(ds: DataSource, dependencies: IndexedSeq[Dependency], 
       println("  incorrect number")
       this
     }
-
-  override def setDs(ds: DataSource) = copy(ds = ds)
 }
 
-case class SelectVersion(ds: DataSource, dependency: Dependency, versions: IndexedSeq[String], override val cache: Seq[Dependency]) extends State {
+case class SelectVersion(
+    override val ds: DataSource,
+    dependency: Dependency,
+    versions: IndexedSeq[String],
+    override val cache: Seq[Dependency]) extends State {
   override def search(query: String) =
     SearchArtifact(ds, cache).search(query)
 
@@ -85,8 +90,6 @@ case class SelectVersion(ds: DataSource, dependency: Dependency, versions: Index
       println("  incorrect number")
       this
     }
-
-  override def setDs(ds: DataSource) = copy(ds = ds)
 }
 
 case class Dependency(group: String, artifact: String, version: String) {
