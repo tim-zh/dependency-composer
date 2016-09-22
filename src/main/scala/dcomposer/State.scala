@@ -50,10 +50,7 @@ case class SearchArtifact(ds: DataSource, override val cache: Seq[Dependency] = 
     this
   }
 
-  override def setDs(ds: DataSource) = {
-    println("  done")
-    copy(ds = ds)
-  }
+  override def setDs(ds: DataSource) = copy(ds = ds)
 }
 
 case class SelectArtifact(ds: DataSource, dependencies: IndexedSeq[Dependency], override val cache: Seq[Dependency]) extends State {

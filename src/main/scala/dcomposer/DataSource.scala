@@ -6,7 +6,6 @@ import play.api.libs.json.{JsArray, JsObject, Json}
 
 import scalaj.http.Http
 
-
 trait DataSource {
   def searchDependency(query: String): IndexedSeq[Dependency]
 
