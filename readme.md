@@ -1,6 +1,6 @@
 #dependency-composer
 
-console rest client for browsing Maven Central or Bintray and generating dependency list for build tools
+console rest client for browsing Maven Central and generating dependency list for build tools
 
 ###Setup:
 
@@ -25,7 +25,6 @@ Usage:
   - type :number (e.g. :1) to choose from search result
   - type :number again to choose version from search result, :0 is the latest release
   - type :[sbt|mvn|gradle] (e.g. :sbt) to generate sbt, maven or gradle dependency list from chosen results
-  - type :[central|bintray] (default is :central) to choose search backend
   - type :x to exit
 joda-time
   :0	joda-time                         - joda-time - 2.9.4

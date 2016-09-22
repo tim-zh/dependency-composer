@@ -58,34 +58,3 @@ class MavenCentralDs extends DataSource {
     prependLatestRelease(versions)
   }
 }
-
-class BinTrayDs extends DataSource {
-  private var versionCache = Map[Dependency, IndexedSeq[String]]()
-
-  override def searchDependency(query: String) = {
-    val request = Http("https://api.bintray.com/search/packages/maven")
-        .param("q", s"*$query*")
-    try {
-      val response = request.asString
-      val result = Json.parse(response.body).as[JsArray].value.toIndexedSeq.map(_.as[JsObject]).flatMap { obj =>
-        val version = (obj \ "latest_version").as[String]
-        val versions = (obj \ "versions").as[JsArray].value.toIndexedSeq.map(_.as[String])
-        (obj \ "system_ids").as[JsArray].value.toIndexedSeq.map(_.as[String]).map { name =>
-          val group = name.substring(0, name.indexOf(":"))
-          val artifact = name.substring(name.indexOf(":") + 1)
-          (Dependency(group, artifact, version), versions)
-        }
-      }
-      result.foreach { case (dependency, versions) => versionCache += dependency -> versions }
-      result.map(_._1)
-    } catch {
-      case _: SocketTimeoutException =>
-        println("  connection timeout")
-        IndexedSeq()
-    }
-  }
-
-  override def searchVersion(dependency: Dependency) = {
-    prependLatestRelease(versionCache(dependency))
-  }
-}
