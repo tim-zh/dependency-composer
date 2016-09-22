@@ -28,8 +28,8 @@ sealed trait State {
   def generateGradle: String = {
     val dependencies = cache.map(_.toGradle).mkString("\n")
     s"""dependencies {
-        |$dependencies
-        |}""".stripMargin
+       |$dependencies
+       |}""".stripMargin
   }
 
   def setDs(ds: DataSource): State
@@ -92,7 +92,7 @@ case class SelectVersion(ds: DataSource, dependency: Dependency, versions: Index
   override def setDs(ds: DataSource) = copy(ds = ds)
 }
 
-case class Dependency(group: String, artifact: String, version: String, allVersions: IndexedSeq[String] = IndexedSeq()) {
+case class Dependency(group: String, artifact: String, version: String) {
   def readable(artifactWidth: Int) = {
     val filler = new String(Array.fill(artifactWidth - artifact.length)(' '))
     s"$artifact$filler - $group - $version"
@@ -110,10 +110,10 @@ case class Dependency(group: String, artifact: String, version: String, allVersi
 
   def toMvn =
     s"""  <dependency>
-        |    <groupId>$group</groupId>
-        |    <artifactId>$artifact</artifactId>
-        |    <version>$version</version>
-        |  </dependency>""".stripMargin
+       |    <groupId>$group</groupId>
+       |    <artifactId>$artifact</artifactId>
+       |    <version>$version</version>
+       |  </dependency>""".stripMargin
 
   def toGradle =
     s"  compile(group: '$group', name: '$artifact', version: '$version')"

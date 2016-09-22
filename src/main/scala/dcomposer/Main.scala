@@ -17,10 +17,12 @@ object Main extends App {
     io.Source.stdin.getLines().next() match {
       case ":x" =>
         return
-      case ":bintray" =>
-        processInput(state.setDs(new BinTrayDs))
       case ":central" =>
-        processInput(state.setDs(new MavenCentralDs))
+        println("  done")
+        processInput(SearchArtifact(new MavenCentralDs))
+      case ":bintray" =>
+        println("  done")
+        processInput(SearchArtifact(new BinTrayDs))
       case ":sbt" =>
         println(state.generateSbt)
         processInput(state)
