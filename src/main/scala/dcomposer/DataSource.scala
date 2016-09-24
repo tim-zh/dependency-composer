@@ -7,6 +7,7 @@ import play.api.libs.json.{JsArray, JsObject, Json}
 import scalaj.http.Http
 
 trait DataSource {
+
   def searchDependency(query: String): IndexedSeq[Dependency]
 
   def searchVersion(dependency: Dependency, useVersionMask: Boolean = false): IndexedSeq[String]
@@ -14,8 +15,7 @@ trait DataSource {
   def fullScalaVersion(major: String): String
 
   protected def prependLatestRelease(versions: IndexedSeq[String]) = {
-    val version = "^[\\d.]+$".r
-    val releases = versions.filter(version.findFirstIn(_).isDefined)
+    val releases = versions.filter(_.matches("^[\\d.]+$"))
     if (releases.isEmpty)
       versions
     else {
@@ -27,6 +27,7 @@ trait DataSource {
 }
 
 class MavenCentralDs extends DataSource {
+
   override def searchDependency(query: String) = {
     val request = Http("http://search.maven.org/solrsearch/select")
         .param("q", query)
@@ -48,7 +49,11 @@ class MavenCentralDs extends DataSource {
   }
 
   override def searchVersion(dependency: Dependency, useVersionMask: Boolean) = {
-    val decodedQuery = s"""q=g:"${dependency.group}"+AND+a:"${dependency.artifact}${if (useVersionMask) s"+AND+v:${dependency.version}*" else ""}""""
+    val postfix = if (useVersionMask)
+      s"+AND+v:${dependency.version}*"
+    else
+      ""
+    val decodedQuery = s"""q=g:"${dependency.group}"+AND+a:"${dependency.artifact}"$postfix"""
     val request = Http("http://search.maven.org/solrsearch/select?" + decodedQuery)
         .param("rows", "30")
         .param("wt", "json")
@@ -67,8 +72,7 @@ class MavenCentralDs extends DataSource {
   }
 
   override def fullScalaVersion(major: String) = {
-    val version = "^[\\d.]+$".r
-    val versions = searchVersion(Dependency("org.scala-lang", "scala-compiler", major), true).filter(version.findFirstIn(_).isDefined)
+    val versions = searchVersion(Dependency("org.scala-lang", "scala-compiler", major), useVersionMask = true).filter(_.matches("^[\\d.]+$"))
     if (versions.isEmpty)
       major + "._"
     else

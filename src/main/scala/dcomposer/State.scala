@@ -1,6 +1,7 @@
 package dcomposer
 
 sealed trait State {
+
   def search(query: String): State
 
   def enterNumber(n: Int): State
@@ -12,24 +13,29 @@ sealed trait State {
       s"""scalaVersion := "${ds.fullScalaVersion(versions.head)}"\n\n"""
     else
       ""
-    val dependencies = cache.map { d =>
-      "\n  " + (if (isOneScalaVersion) d.toSbt else d.toSbtWithVersion)
-    }.mkString(",")
-    s"${prefix}libraryDependencies ++= Seq($dependencies\n)"
+    val dependencies = {
+      if (isOneScalaVersion)
+        cache.map(_.toSbt)
+      else
+        cache.map(_.toSbtWithVersion)
+    }.mkString(",\n")
+    s"${prefix}libraryDependencies ++= Seq(\n$dependencies\n)"
   }
 
   def generateMvn: String = {
     val dependencies = cache.map(_.toMvn).mkString("\n")
     s"""<dependencies>
        |$dependencies
-       |</dependencies>""".stripMargin
+       |</dependencies>
+     """.stripMargin.stripLineEnd
   }
 
   def generateGradle: String = {
     val dependencies = cache.map(_.toGradle).mkString("\n")
     s"""dependencies {
        |$dependencies
-       |}""".stripMargin
+       |}
+     """.stripMargin.stripLineEnd
   }
 
   protected val ds: DataSource
@@ -40,6 +46,7 @@ sealed trait State {
 case class SearchArtifact(
     override val ds: DataSource,
     override val cache: Seq[Dependency] = Seq()) extends State {
+
   override def search(query: String) = {
     val dependencies = ds.searchDependency(query)
     val artifactWidth = if (dependencies.isEmpty) 0 else dependencies.map(_.artifact.length).max
@@ -57,6 +64,7 @@ case class SelectArtifact(
     override val ds: DataSource,
     dependencies: IndexedSeq[Dependency],
     override val cache: Seq[Dependency]) extends State {
+
   override def search(query: String) =
     SearchArtifact(ds, cache).search(query)
 
@@ -77,6 +85,7 @@ case class SelectVersion(
     dependency: Dependency,
     versions: IndexedSeq[String],
     override val cache: Seq[Dependency]) extends State {
+
   override def search(query: String) =
     SearchArtifact(ds, cache).search(query)
 
@@ -93,6 +102,7 @@ case class SelectVersion(
 }
 
 case class Dependency(group: String, artifact: String, version: String) {
+
   def readable(artifactWidth: Int) = {
     val filler = new String(Array.fill(artifactWidth - artifact.length)(' '))
     s"$artifact$filler - $group - $version"
@@ -100,11 +110,11 @@ case class Dependency(group: String, artifact: String, version: String) {
 
   def toSbt =
     if (scalaVersion.isDefined)
-      s""""$group" %% "${splitArtifact._1}" % "$version""""
+      s"""  "$group" %% "${splitArtifact._1}" % "$version""""
     else
       toSbtWithVersion
 
-  def toSbtWithVersion = s""""$group" % "$artifact" % "$version""""
+  def toSbtWithVersion = s""""  $group" % "$artifact" % "$version""""
 
   def scalaVersion = splitArtifact._2
 
@@ -113,7 +123,8 @@ case class Dependency(group: String, artifact: String, version: String) {
        |    <groupId>$group</groupId>
        |    <artifactId>$artifact</artifactId>
        |    <version>$version</version>
-       |  </dependency>""".stripMargin
+       |  </dependency>
+     """.stripMargin.stripLineEnd
 
   def toGradle =
     s"  compile(group: '$group', name: '$artifact', version: '$version')"

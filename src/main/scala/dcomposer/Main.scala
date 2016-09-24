@@ -3,6 +3,7 @@ package dcomposer
 import scala.annotation.tailrec
 
 object Main extends App {
+
   println("Usage:")
   println("  - type an artifact name pattern")
   println("  - type :number (e.g. :1) to choose from search result")
@@ -15,7 +16,6 @@ object Main extends App {
     val resultNumberMask = ":(\\d+)".r
     io.Source.stdin.getLines().next() match {
       case ":x" =>
-        return
       case ":sbt" =>
         println(state.generateSbt)
         processInput(state)
