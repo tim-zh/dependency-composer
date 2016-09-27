@@ -11,9 +11,10 @@ object Main extends App {
   println("  - type :[sbt|mvn|gradle] (e.g. :sbt) to generate sbt, maven or gradle dependency list from chosen results")
   println("  - type :x to exit")
 
+  val resultNumberMask = ":(\\d+)".r
+
   @tailrec
   def processInput(state: State): Unit = {
-    val resultNumberMask = ":(\\d+)".r
     io.Source.stdin.getLines().next() match {
       case ":x" =>
       case ":sbt" =>

@@ -2,7 +2,8 @@ package dcomposer
 
 import java.net.SocketTimeoutException
 
-import play.api.libs.json.{JsArray, JsObject, Json}
+import com.fasterxml.jackson.core.JsonParseException
+import play.api.libs.json.{ JsArray, JsObject, Json }
 
 import scalaj.http.Http
 
@@ -42,6 +43,9 @@ class MavenCentralDs extends DataSource {
         Dependency(group, artifact, version)
       }
     } catch {
+      case e: JsonParseException =>
+        println(s"  incorrect input from backend: ${e.getOriginalMessage}")
+        IndexedSeq()
       case _: SocketTimeoutException =>
         println("  connection timeout")
         IndexedSeq()
@@ -65,6 +69,9 @@ class MavenCentralDs extends DataSource {
       }
       prependLatestRelease(versions)
     } catch {
+      case e: JsonParseException =>
+        println(s"  incorrect input from backend: ${e.getOriginalMessage}")
+        IndexedSeq()
       case _: SocketTimeoutException =>
         println("  connection timeout")
         IndexedSeq()
