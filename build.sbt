@@ -10,5 +10,7 @@ resolvers += "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/"
 
 libraryDependencies ++= Seq(
   "org.scalaj" %% "scalaj-http" % "2.3.0",
-  "com.typesafe.play" %% "play-json" % "2.3.8"
+  "com.fasterxml.jackson.core" % "jackson-databind" % "2.8.3",
+  "com.fasterxml.jackson.core" % "jackson-annotations" % "2.8.3",
+  "com.fasterxml.jackson.core" % "jackson-core" % "2.8.3"
 )

@@ -3,7 +3,7 @@ package dcomposer
 import java.net.SocketTimeoutException
 
 import com.fasterxml.jackson.core.JsonParseException
-import play.api.libs.json.{ JsArray, JsObject, Json }
+import com.fasterxml.jackson.databind.ObjectMapper
 
 import scalaj.http.Http
 
@@ -16,7 +16,7 @@ trait DataSource {
   def fullScalaVersion(major: String): String
 
   protected def prependLatestRelease(versions: IndexedSeq[String]) = {
-    val releases = versions.filter(_.matches("^[\\d.]+$"))
+    val releases = versions.filter(_.toLowerCase.matches("^[\\d.(final)v]+$"))
     if (releases.isEmpty)
       versions
     else {
@@ -28,6 +28,11 @@ trait DataSource {
 }
 
 class MavenCentralDs extends DataSource {
+  val jsonListOfDocs = {
+    import scala.collection.JavaConverters._
+    val mapper = new ObjectMapper
+    (json: String) => mapper.readTree(json).path("response").withArray("docs").elements().asScala.toIndexedSeq
+  }
 
   override def searchDependency(query: String) = {
     val request = Http("http://search.maven.org/solrsearch/select")
@@ -36,10 +41,10 @@ class MavenCentralDs extends DataSource {
         .param("wt", "json")
     try {
       val response = request.asString
-      (Json.parse(response.body) \ "response" \ "docs").as[JsArray].value.toIndexedSeq.map(_.as[JsObject]).map { obj =>
-        val group = (obj \ "g").as[String]
-        val artifact = (obj \ "a").as[String]
-        val version = (obj \ "latestVersion").as[String]
+      jsonListOfDocs(response.body).map { obj =>
+        val group = obj.get("g").asText()
+        val artifact = obj.get("a").asText()
+        val version = obj.get("latestVersion").asText()
         Dependency(group, artifact, version)
       }
     } catch {
@@ -64,8 +69,8 @@ class MavenCentralDs extends DataSource {
         .param("core", "gav")
     try {
       val response = request.asString
-      val versions = (Json.parse(response.body) \ "response" \ "docs").as[JsArray].value.toIndexedSeq.map(_.as[JsObject]).map { obj =>
-        (obj \ "v").as[String]
+      val versions = jsonListOfDocs(response.body).map { obj =>
+        obj.get("v").asText()
       }
       prependLatestRelease(versions)
     } catch {
