@@ -8,7 +8,7 @@ object Main extends App {
   println("  - type an artifact name pattern")
   println("  - type :number (e.g. :1) to choose from search result")
   println("  - type :number again to choose version from search result, :0 is the latest release")
-  println("  - type :[sbt|mvn|gradle] (e.g. :sbt) to generate sbt, maven or gradle dependency list from chosen results")
+  println("  - type :[sbt|cbt|mvn|gradle] (e.g. :sbt) to generate sbt, maven or gradle dependency list from chosen results")
   println("  - type :x to exit")
 
   val resultNumberMask = ":(\\d+)".r
@@ -19,6 +19,9 @@ object Main extends App {
       case ":x" =>
       case ":sbt" =>
         println(state.generateSbt)
+        processInput(state)
+      case ":cbt" =>
+        println(state.generateCbt)
         processInput(state)
       case ":mvn" =>
         println(state.generateMvn)

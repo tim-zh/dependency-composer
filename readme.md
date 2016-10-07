@@ -24,7 +24,7 @@ Usage:
   - type an artifact name pattern
   - type :number (e.g. :1) to choose from search result
   - type :number again to choose version from search result, :0 is the latest release
-  - type :[sbt|mvn|gradle] (e.g. :sbt) to generate sbt, maven or gradle dependency list from chosen results
+  - type :[sbt|cbt|mvn|gradle] (e.g. :sbt) to generate sbt, maven or gradle dependency list from chosen results
   - type :x to exit
 joda-time
   :0	joda-time                         - joda-time - 2.9.4

@@ -22,20 +22,38 @@ sealed trait State {
     s"${prefix}libraryDependencies ++= Seq(\n$dependencies\n)"
   }
 
+  def generateCbt: String = {
+    val versions = cache.flatMap(_.scalaVersion).toSet
+    val isOneScalaVersion = versions.size == 1
+    val prefix = if (isOneScalaVersion)
+      s"""override def defaultScalaVersion = "${ds.fullScalaVersion(versions.head)}"\n\n"""
+    else
+      ""
+    val dependencies = {
+      if (isOneScalaVersion)
+        cache.map(_.toCbt)
+      else
+        cache.map(_.toCbtWithVersion)
+    }.mkString(",\n")
+    s"""${prefix}override def dependencies = {
+       |  super.dependencies ++ Resolver(mavenCentral).bind(
+       |$dependencies
+       |  )
+       |}""".stripMargin
+  }
+
   def generateMvn: String = {
     val dependencies = cache.map(_.toMvn).mkString("\n")
     s"""<dependencies>
        |$dependencies
-       |</dependencies>
-     """.stripMargin.stripLineEnd
+       |</dependencies>""".stripMargin
   }
 
   def generateGradle: String = {
     val dependencies = cache.map(_.toGradle).mkString("\n")
     s"""dependencies {
        |$dependencies
-       |}
-     """.stripMargin.stripLineEnd
+       |}""".stripMargin
   }
 
   protected val ds: DataSource
@@ -114,7 +132,15 @@ case class Dependency(group: String, artifact: String, version: String) {
     else
       toSbtWithVersion
 
-  def toSbtWithVersion = s""""  $group" % "$artifact" % "$version""""
+  def toSbtWithVersion = s"""  "$group" % "$artifact" % "$version""""
+
+  def toCbt =
+    if (scalaVersion.isDefined)
+      s"""    ScalaDependency("$group", "${splitArtifact._1}", "$version")"""
+    else
+      toCbtWithVersion
+
+  def toCbtWithVersion = s"""    MavenDependency("$group", "$artifact", "$version")"""
 
   def scalaVersion = splitArtifact._2
 
@@ -123,8 +149,7 @@ case class Dependency(group: String, artifact: String, version: String) {
        |    <groupId>$group</groupId>
        |    <artifactId>$artifact</artifactId>
        |    <version>$version</version>
-       |  </dependency>
-     """.stripMargin.stripLineEnd
+       |  </dependency>""".stripMargin
 
   def toGradle =
     s"  compile(group: '$group', name: '$artifact', version: '$version')"
