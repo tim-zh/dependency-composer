@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>dependency composer</title>
+  <style>
+    body {
+      font-family: Helvetica, sans-serif;
+    }
+    h1 {
+      font-weight: normal;
+    }
+    table {
+      display: inline;
+    }
+    tr:nth-child(even) {
+      background: #efe;
+    }
+    tr:nth-child(odd) {
+      background: #eef;
+    }
+    tr:first-child, tr:first-child:hover, #searchResults tr:first-child:hover {
+      background: #444;
+      color: #fff;
+      cursor: default;
+    }
+    #searchResults tr {
+      cursor: pointer;
+      transition: 200ms;
+    }
+    #searchResults tr:hover {
+      background: #888;
+      color: #fff;
+    }
+    td {
+      padding: 8px;
+    }
+    td button {
+      padding: 0;
+    }
+    .container {
+      margin: 0 auto;
+      padding: 10%;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>dependency composer</h1>
+  <input type="text" placeholder="search" name="query" onkeyup="handleInput(event)">
+  <button onclick="search()">search</button>
+  <hr>
+  <table id="searchResults">
+    <tr>
+      <td>artifact</td>
+      <td>group</td>
+      <td>latest version</td>
+    </tr>
+    <!--mock-->
+    <tr onclick="selectResult(0)">
+      <td>play-json_2.11</td>
+      <td>com.typesafe.play</td>
+      <td>2.5.8</td>
+    </tr>
+    <tr onclick="selectResult(1)">
+      <td>play-json_2.11</td>
+      <td>com.typesafe.play</td>
+      <td>2.5.8</td>
+    </tr>
+    <tr onclick="selectResult(2)">
+      <td>play-json_2.11</td>
+      <td>com.typesafe.play</td>
+      <td>2.5.8</td>
+    </tr>
+    <!--/mock-->
+  </table>
+  <table id="selectedResults">
+    <tr>
+      <td>artifact</td>
+      <td>group</td>
+      <td>version</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>play-json_2.11</td>
+      <td>com.typesafe.play</td>
+      <td><select>
+        <option value="0">2.5.8</option>
+        <option value="1">2.5.8</option>
+      </select></td>
+      <td><button onclick="removeSelected(0)">×</button></td>
+    </tr>
+  </table>
+</div>
+<script>
+
+
+  function handleInput(event) {
+    if (event.keyCode == 13)
+      search();
+  }
+  function search() {
+    let query = document.querySelector("input[name=query]").value;
+    ajax("GET", "/", data => {});
+  }
+  function selectResult(id) {
+  }
+  function removeSelected(id) {
+  }
+  function ajax(method, url, done) {
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.onreadystatechange = function() {
+      if (xmlhttp.readyState == XMLHttpRequest.DONE) {
+        if (xmlhttp.status == 200) {
+          done(xmlhttp.responseText);
+        } else if (xmlhttp.status == 400) {
+          console.log('There was an error 400');
+        } else {
+          console.log('something else other than 200 was returned');
+        }
+      }
+    };
+    xmlhttp.open(method, url, true);
+    xmlhttp.send();
+  }
+</script>
+</body>
+</html>

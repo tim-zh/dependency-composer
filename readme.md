@@ -21,6 +21,7 @@ $ sbt assembly
 ```
 $ java -jar dc.jar
 Usage:
+  - type :web to open web ui
   - type an artifact name pattern
   - type :number (e.g. :1) to choose from search result
   - type :number again to choose version from search result, :0 is the latest release
