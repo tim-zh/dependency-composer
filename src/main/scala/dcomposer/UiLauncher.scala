@@ -22,10 +22,18 @@ trait UiLauncher {
     val server = new Server(uiPort)
 
     val handlers = new HandlerCollection
-    handlers.setHandlers(Array(handlerStatic, handlerApi, new DefaultHandler))
+    handlers.setHandlers(Array(handlerOfStatic, handlerOfApi, new DefaultHandler))
     server.setHandler(handlers)
 
-    private def handlerStatic = {
+    def route(method: String, path: String, param: String => String) = (method, path) match {
+      case ("GET", "/") =>
+        val query = param("q")
+        Some(s"""{"a":"Hi $query"}""")
+      case _ =>
+        None
+    }
+
+    def handlerOfStatic = {
       val handler = new ContextHandler("/")
       val resourceHandler = new ResourceHandler
       resourceHandler.setDirectoriesListed(true)
@@ -36,19 +44,24 @@ trait UiLauncher {
       handler
     }
 
-    private def handlerApi = {
+    def handlerOfApi = {
       import javax.servlet.http.{ HttpServletRequest, HttpServletResponse }
 
-      val handler = new ContextHandler("/api")
+      val handler = new ContextHandler("/api/")
       val handler1 = new AbstractHandler {
         override def handle(target: String,
                             baseRequest: Request,
                             request: HttpServletRequest,
                             response: HttpServletResponse) = {
-          response.setContentType("text/html; charset=utf-8")
-          response.setStatus(HttpServletResponse.SC_OK)
-          val out = response.getWriter
-          out.println("<h1>Hi</h1>")
+          response.setContentType("application/json")
+          response.setCharacterEncoding("UTF-8")
+
+          route(request.getMethod, target, request.getParameter).fold {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND)
+          } {
+            response.getWriter.write _
+          }
+
           baseRequest.setHandled(true)
         }
       }
